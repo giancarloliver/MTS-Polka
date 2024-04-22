@@ -6,5 +6,5 @@
 ## Execução iniciais
 1. Executar o teste:
 ```sh
-$ sudo python3run_test1.py
+$ sudo python3 run_test1.py
 ``` 
