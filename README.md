@@ -2,13 +2,9 @@
 
 O artigo apresenta a proposta inovadora chamada MTS_Polka para otimizar o tráfego em redes de datacenters. Introduz um método dinâmico de divisão de tráfego com rótulos routeIDs e wIDs no cabeçalho dos pacotes, utilizando tabelas estáticas nos switches para permitir ajustes flexíveis em tempo real, eliminando reconfigurações complexas. A abordagem emprega o roteamento na origem com o Protocolo M-Polka modificado, utilizando um sistema numérico de resíduos para roteamento de fonte sem armazenamento de estado e sem alterações nos hosts finais. O MTS_Polka destaca-se pela agilidade na (re)configuração de caminhos e pesos, com o plano de controle calculando identificadores de rota routeIDs, peso wIDs e nó nodeIDs. Experimentos demonstram a eficácia da solução, possibilitando reconfigurações ágeis de perfis de divisão de tráfego na origem, com potencial de melhorar o desempenho e eficiência em redes de datacenters.
 
-## Cenário da nossa proposta
-
-![](topologia/MTS-PolKA.png)
-
 ## Organização dos arquvivos
 
-- \<artigo> - diretório contendo os experimentos do artigo- 
+- \<artigo> - diretório contendo os experimentos do artigo. 
 - \<m-polka> - diretório onde estão os aruivos em p4 de configuração dos switches edges e core.
 - MTS-PolKA.pdf - Artigo em pdf.
 
@@ -63,12 +59,11 @@ Para criar a topologia usando o Mininet, devemos executar o seguinte comando:
 $ sudo python3 run_cenario_topology.py
 ```
 
-## Cenário da profile 11
+## Funcionamento do MTS-Polka
 
-![](artigo/cenarios/mts-polka.pdf)
+![](artigo/cenarios/mts-polka.png)
 
-Definição dos rótulos que serão usados por cada nó de núcleo para determinar o estado das portas de saída e perfis de divisão de tráfego correspondentes. Cada nó de núcleo possui duas tabelas estáticas com perfis de tráfego pré-definidos, que são selecionados a partir de operações com os rótulos routeID e wID de cada pacote. Cada switch de borda possui uma tabela de fluxos, previamente preenchida pelo controlador, que insere os rótulos routeID e weightID nos pacotes de cada fluxo. Essa tabela mapeia informações sobre o fluxo (e.g., endereço IP de destino, portas) em decisões de roteamento e balanceamento de carga. Posteriormente, esses r  ́otulos s  ̃ao usados em cada switch de núcleo para determinar o estado das portas de saída e selecionar os perfis de divisão de tráfego correspondentes, conforme Figura. A Figura exemplifica o funcionamento do plano de dados no MTS-PolKA para um
-switch de núcleo 𝑆𝑖 que possui 6 portas e distribuição de tráfego com proporção de pesos 2:1:2:1 para as portas que encaminham para os switches A, B, D e E, respectivamente.
+Definição dos rótulos que serão usados por cada nó de núcleo para determinar o estado das portas de saída e perfis de divisão de tráfego correspondentes. Cada nó de núcleo possui duas tabelas estáticas com perfis de tráfego pré-definidos, que são selecionados a partir de operações com os rótulos routeID e wID de cada pacote. Cada switch de borda possui uma tabela de fluxos, previamente preenchida pelo controlador, que insere os rótulos routeID e weightID nos pacotes de cada fluxo. Essa tabela mapeia informações sobre o fluxo (e.g., endereço IP de destino, portas) em decisões de roteamento e balanceamento de carga. Posteriormente, esses r  ́otulos s  ̃ao usados em cada switch de núcleo para determinar o estado das portas de saída e selecionar os perfis de divisão de tráfego correspondentes, conforme Figura. A Figura exemplifica o funcionamento do plano de dados no MTS-PolKA para um switch de núcleo 𝑆𝑖 que possui 6 portas e distribuição de tráfego com proporção de pesos 2:1:2:1 para as portas que encaminham para os switches A, B, D e E, respectivamente.
 
 No ingresso do pacote, deve ser realizada a operação de Definição de rota usando a operação de módulo (MOD) entre o routeID = 110110 e o nodeID = 111. O resultado desta operação serve para definir as portas de saída ativas (portID = 011011) que serão usadas no encaminhamento do pacote. Dessa forma, o tráfego é encaminhado pelas portas correspondentes aos bits de valor 1 em portID, com a análise realizada da direita para a esquerda. Assim, os pacotes são transmitidos para os switches A, B, D e E. Em seguida, é necessário descobrir qual o perfil de divisão de tráfego será usado no encaminhamento deste pacote para cada porta de saída ativa, conforme o weightID definido no pacote. Previamente, o controlador configurou, em cada switch de núcleo, o seu nodeID e duas tabelas estáticas (table static profiles e table multipath), que definem, respectivamente, os perfis de tráfego suportados e como o tráfego deve ser
 distribuído pelas portas ativas conforme o perfil selecionado. Dessa forma, existem diversos perfis de tráfego disponíveis em cada switch de núcleo, que podem ser selecionados pela borda para os pacotes de cada fluxo, sem nenhuma configuração adicional nos switches de núcleo. A quantidade e a variedade de perfis suportados  ́e uma decis  ̃ao do plano de controle.
