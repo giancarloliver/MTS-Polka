@@ -8,7 +8,7 @@ O artigo apresenta a proposta inovadora chamada MTS_Polka para otimizar o tráfe
 
 ## Organização dos arquvivos
 
-- \<artigo> - diretório contendo os experimentos do artigo- 
+- \<artigo> - diretório contendo os experimentos do artigo. 
 - \<m-polka> - diretório onde estão os aruivos em p4 de configuração dos switches edges e core.
 - MTS-PolKA.pdf - Artigo em pdf.
 
