@@ -59,3 +59,25 @@ Pendente de auditoria de conteúdo.
 13 ↔ 14
 13 ↔ 15
 14 ↔ 15
+
+## Artefatos auditáveis
+
+| ID | Arquivo | Status |
+|---|---|---|
+| 13 | [Inventário Final](docs/registro-programa-computador/13_Inventario_Final_Dossie_MTS-PolKA.xlsx) | Materializado |
+| 14 | [Matriz de Rastreabilidade](docs/registro-programa-computador/14_Matriz_Rastreabilidade_MTS-PolKA.xlsx) | Materializado |
+| 15 | [Relatório de Saneamento V5.3](docs/registro-programa-computador/15_Relatorio_Saneamento_Final_V5.3_MTS-PolKA.docx) | Materializado |
+
+
+### Regra de auditoria
+
+A existência do arquivo no repositório comprova sua materialização no
+commit correspondente. A existência do arquivo, isoladamente, não implica
+consistência de conteúdo.
+
+Os artefatos 13, 14 e 15 deverão ser submetidos à verificação estrutural
+e à comparação cruzada:
+
+13 ↔ 14
+13 ↔ 15
+14 ↔ 15
