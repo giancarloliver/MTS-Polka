@@ -1,131 +1,57 @@
-# MTS-PolKA — v1.0
+# Registro de Programa de Computador — MTS-PolKA
 
-**Weighted Multipath Traffic Splitting With Source Routing for Elephant and Mice Flows**
+## Identificação
 
-Implementação e documentação do **MTS-PolKA**, uma abordagem para divisão de tráfego multicaminho baseada em pesos e roteamento na fonte, utilizando identificadores de rota e de perfil de pesos e operações sobre polinômios em aritmética de corpos finitos.
+**Software:** MTS-PolKA — *Weighted Multipath Traffic Splitting With Source Routing for Elephant and Mice Flows*
 
-## Versão do software
+**Versão do software:** v1.0
 
-**MTS-PolKA v1.0**
+**Versão documental do dossiê:** V5.3
 
-> **Nota de versionamento:** `v1.0` identifica a versão do software. Eventuais referências a `V5.3` nos documentos identificam a versão do **processo/dossiê de auditoria documental**, e não a versão do software.
+> `v1.0` identifica a versão do software. `V5.3` identifica a versão do processo/dossiê documental de registro e auditoria.
 
-## Sobre o projeto
+## Objetivo
 
-O MTS-PolKA combina:
+Esta pasta reúne, de forma separada do código-fonte operacional, os documentos utilizados na preparação, organização, rastreabilidade e saneamento do processo de registro do programa de computador MTS-PolKA.
 
-- roteamento na fonte;
-- divisão de tráfego multicaminho por pesos;
-- identificadores `routeID` e `weightID`;
-- processamento no plano de dados;
-- perfis estáticos de distribuição de tráfego;
-- cálculo baseado em polinômios e aritmética modular;
-- encaminhamento sem necessidade de reconfiguração dinâmica dos switches de núcleo para cada fluxo.
+## Organização dos artefatos
 
-A arquitetura é organizada conceitualmente em **plano de controle** e **plano de dados**.
+| Nº | Documento | Finalidade |
+|---|---|---|
+| 01 | Ofício de Comunicação à Inovação | Comunicação formal |
+| 02 | Pedido de Registro de Programa de Computador | Pedido de registro |
+| 03 | Formulário de Criação de Software | Formalização da criação |
+| 04 | Termo de Cessão de Direitos | Direitos patrimoniais |
+| 05 | Memorial Descritivo Técnico | Descrição técnica |
+| 06 | Matriz de Autores e Contribuições | Autoria e contribuições |
+| 07 | Checklist de Documentos dos Autores | Conferência documental |
+| 08 | Matriz de Titularidade IFES/UFES | Titularidade |
+| 09 | Diligência de Parceria IFES/UFES | Verificação de parceria |
+| 10 | Diligência de Financiamento FAPES/CAPES | Verificação de financiamento |
+| 11 | Matriz de Financiamento/Propriedade Intelectual | Rastreabilidade de financiamento e PI |
+| 12 | Checklist Final SIPAC/AGIFES | Conferência para tramitação |
+| 13 | Inventário Final do Dossiê | Inventário de evidências |
+| 14 | Matriz de Rastreabilidade | Relações entre evidências e documentos |
+| 15 | Relatório de Saneamento Final V5.3 | Consolidação do saneamento documental |
 
-### Plano de controle
+## Núcleo de auditoria documental
 
-Responsável, entre outras funções, por:
+Os artefatos 13, 14 e 15 constituem o núcleo de verificação de consistência documental e devem ser analisados nas relações:
 
-1. determinar caminhos;
-2. calcular identificadores de rota;
-3. selecionar perfis de distribuição;
-4. associar os identificadores aos fluxos;
-5. instalar as regras necessárias nos dispositivos de ingresso.
+- 13 ↔ 14
+- 13 ↔ 15
+- 14 ↔ 15
 
-### Plano de dados
+A existência de um arquivo no GitHub comprova sua materialização no repositório, mas não comprova automaticamente a correção, validade ou consistência de seu conteúdo.
 
-Responsável por:
+## Regra de versionamento
 
-1. interpretar os identificadores transportados pelo pacote;
-2. determinar as portas de saída;
-3. selecionar o perfil de distribuição;
-4. realizar a seleção do caminho conforme o perfil de pesos;
-5. encaminhar o pacote sem manter estado específico por fluxo nos switches de núcleo.
+A referência do software para o registro é **MTS-PolKA v1.0**. Referências a **V5.3** nos documentos correspondem exclusivamente ao ciclo documental/auditável do dossiê.
 
-## Estrutura do repositório
+## Separação do projeto
 
-Os diretórios existentes no projeto contêm o código-fonte, experimentos, configurações P4, materiais do artigo e documentação técnica.
+O código-fonte, experimentos, configurações P4 e demais materiais técnicos do projeto permanecem na estrutura principal do repositório. Os documentos de registro ficam concentrados nesta pasta `Registro-Software/`, evitando misturar documentação administrativa de registro com os artefatos operacionais do software.
 
-A documentação relacionada ao **registro do programa de computador** deve ser mantida separada do código operacional, preferencialmente em:
+## Repositório
 
-`audit/V5.3/`
-
-## Dossiê documental — MTS-PolKA v1.0
-
-O dossiê consolidado contém documentos técnicos, matrizes de rastreabilidade, documentos formais e instrumentos de saneamento documental, incluindo:
-
-| Arquivo | Finalidade |
-|---|---|
-| `01_Oficio_Comunicacao_Inovacao_MTS-PolKA.docx` | Ofício de comunicação |
-| `02_Pedido_Registro_Programa_Computador_MTS-PolKA.docx` | Pedido de registro |
-| `03_Formulario_Criacao_Software_MTS-PolKA.docx` | Formulário de criação |
-| `04_Termo_Cessao_Direitos_MTS-PolKA.docx` | Termo de cessão de direitos |
-| `05_Memorial_Descritivo_Tecnico_MTS-PolKA-v6.docx` | Memorial técnico |
-| `06_Matriz_Autores_Contribuicoes_MTS-PolKA.docx` | Autoria e contribuições |
-| `07_Checklist_Documentos_Autores_MTS-PolKA.docx` | Checklist documental |
-| `08_Matriz_Titularidade_Ifes_Ufes_MTS-PolKA.docx` | Matriz de titularidade |
-| `09_Diligencia_Parceria_Ifes_Ufes_MTS-PolKA.docx` | Diligência de parceria |
-| `10_Diligencia_Financiamento_Fapes_Capes_MTS-PolKA.docx` | Diligência de financiamento |
-| `11_Matriz_Financiamento_PI_MTS-PolKA.docx` | Matriz de financiamento |
-| `12_Checklist_Final_SIPAC_AGIFES_MTS-PolKA.docx` | Checklist final |
-| `13_Inventario_Final_Dossie_MTS-PolKA.xlsx` | Inventário final de evidências |
-| `14_Matriz_Rastreabilidade_MTS-PolKA.xlsx` | Rastreabilidade documental |
-| `15_Relatorio_Saneamento_Final_V5.3_MTS-PolKA.docx` | Relatório de saneamento |
-| `16_Matriz_Fechamento_Final_MTS-PolKA.docx` | Matriz final de fechamento |
-| `README_Versao_Final.txt` | Nota de organização da versão final |
-| `NOTA_VERSAO_v1.0.txt` | Regra de versionamento |
-
-## Estado documental
-
-### Documentação técnica
-
-- [x] Software identificado: **MTS-PolKA**
-- [x] Finalidade e problemas identificados
-- [x] Funcionalidades de controle e dados identificadas
-- [x] Arquitetura geral dividida entre controle e dados
-- [x] Código-fonte localizado no GitHub
-- [x] Localização da pasta do servidor documentada
-- [x] Evidência da pasta no servidor institucional documentada
-- [x] Linguagens identificadas: Python 87,4%, P4 9,0% e Shell 2,8%
-- [x] Componentes e módulos identificados
-- [x] Autores vinculados ao código
-- [x] Contribuições técnicas individualizadas
-- [x] Desenvolvimento documentado
-- [x] Individualização e originalidade caracterizadas pela abordagem matemática baseada em CRT/RNS
-- [x] Documentação técnica complementar consolidada
-
-### Documentação formal
-
-- [x] Ofício de Comunicação
-- [x] Pedido de Registro
-- [x] Formulário de Criação
-- [ ] Documentos formais de parceria Ifes/Ufes
-- [ ] Documentação Fapes e Termos de Outorga
-
-Os itens ainda não concluídos permanecem explicitamente identificados como **pendências documentais**, não sendo tratados como fatos comprovados.
-
-## Autoria e versionamento
-
-O código e a documentação técnica devem preservar a rastreabilidade dos autores, contribuições e histórico de desenvolvimento.
-
-A versão de referência para o **registro do programa de computador** é:
-
-**MTS-PolKA — v1.0**
-
-## Artigo relacionado
-
-O projeto está associado ao trabalho:
-
-**Weighted Multipath Traffic Splitting With Source Routing for Elephant and Mice Flows**
-
-O material científico e os experimentos correspondentes permanecem nos diretórios próprios do repositório.
-
-## Licença
-
-Consulte os arquivos de licença e as condições de uso presentes neste repositório antes de reutilizar o código.
-
----
-
-**Repositório:** https://github.com/giancarloliver/MTS-PolKA
+https://github.com/giancarloliver/MTS-PolKA
