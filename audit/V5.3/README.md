@@ -8,9 +8,9 @@ Verificar a materialização, estrutura e consistência dos artefatos documentai
 
 Os testes de fechamento concentram-se nos seguintes artefatos:
 
-- 13_Inventario_Final_Dossie_MTS-PolKA.xlsx
-- 14_Matriz_Rastreabilidade_MTS-PolKA.xlsx
-- 15_Relatorio_Saneamento_Final_V5.3_MTS-PolKA.docx
+- docs/registro-programa-computador/13_Inventario_Final_Dossie_MTS-PolKA.xlsx
+- docs/registro-programa-computador/14_Matriz_Rastreabilidade_MTS-PolKA.xlsx
+- docs/registro-programa-computador/15_Relatorio_Saneamento_Final_V5.3_MTS-PolKA.docx
 
 ## Testes
 
