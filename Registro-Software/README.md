@@ -1,281 +1,131 @@
-# MTS-PolKA: Divisão de tráfego multicaminho em proporção de peso com roteamento na fonte
+# MTS-PolKA — v1.0
 
-O artigo apresenta a proposta inovadora chamada MTS_Polka para otimizar o tráfego em redes de datacenters. Introduz um método dinâmico de divisão de tráfego com rótulos routeIDs e wIDs no cabeçalho dos pacotes, utilizando tabelas estáticas nos switches para permitir ajustes flexíveis em tempo real, eliminando reconfigurações complexas. A abordagem emprega o roteamento na origem com o Protocolo M-Polka modificado, utilizando um sistema numérico de resíduos para roteamento de fonte sem armazenamento de estado e sem alterações nos hosts finais. O MTS_Polka destaca-se pela agilidade na (re)configuração de caminhos e pesos, com o plano de controle calculando identificadores de rota routeIDs, peso wIDs e nó nodeIDs. Experimentos demonstram a eficácia da solução, possibilitando reconfigurações ágeis de perfis de divisão de tráfego na origem, com potencial de melhorar o desempenho e eficiência em redes de datacenters.
+**Weighted Multipath Traffic Splitting With Source Routing for Elephant and Mice Flows**
 
-## Funcionamento do MTS-Polka
+Implementação e documentação do **MTS-PolKA**, uma abordagem para divisão de tráfego multicaminho baseada em pesos e roteamento na fonte, utilizando identificadores de rota e de perfil de pesos e operações sobre polinômios em aritmética de corpos finitos.
 
-![](artigo/cenarios/mts-polka.png)
+## Versão do software
 
-Definição dos rótulos que serão usados por cada nó de núcleo para determinar o estado das portas de saída e perfis de divisão de tráfego correspondentes. Cada nó de núcleo possui duas tabelas estáticas com perfis de tráfego pré-definidos, que são selecionados a partir de operações com os rótulos routeID e wID de cada pacote. Cada switch de borda possui uma tabela de fluxos, previamente preenchida pelo controlador, que insere os rótulos routeID e weightID nos pacotes de cada fluxo. Essa tabela mapeia informações sobre o fluxo (e.g., endereço IP de destino, portas) em decisões de roteamento e balanceamento de carga. Posteriormente, esses r  ́otulos s  ̃ao usados em cada switch de núcleo para determinar o estado das portas de saída e selecionar os perfis de divisão de tráfego correspondentes, conforme Figura. A Figura exemplifica o funcionamento do plano de dados no MTS-PolKA para um switch de núcleo 𝑆𝑖 que possui 6 portas e distribuição de tráfego com proporção de pesos 2:1:2:1 para as portas que encaminham para os switches A, B, D e E, respectivamente.
+**MTS-PolKA v1.0**
 
-No ingresso do pacote, deve ser realizada a operação de Definição de rota usando a operação de módulo (MOD) entre o routeID = 110110 e o nodeID = 111. O resultado desta operação serve para definir as portas de saída ativas (portID = 011011) que serão usadas no encaminhamento do pacote. Dessa forma, o tráfego é encaminhado pelas portas correspondentes aos bits de valor 1 em portID, com a análise realizada da direita para a esquerda. Assim, os pacotes são transmitidos para os switches A, B, D e E. Em seguida, é necessário descobrir qual o perfil de divisão de tráfego será usado no encaminhamento deste pacote para cada porta de saída ativa, conforme o weightID definido no pacote. Previamente, o controlador configurou, em cada switch de núcleo, o seu nodeID e duas tabelas estáticas (table static profiles e table multipath), que definem, respectivamente, os perfis de tráfego suportados e como o tráfego deve ser
-distribuído pelas portas ativas conforme o perfil selecionado. Dessa forma, existem diversos perfis de tráfego disponíveis em cada switch de núcleo, que podem ser selecionados pela borda para os pacotes de cada fluxo, sem nenhuma configuração adicional nos switches de núcleo. A quantidade e a variedade de perfis suportados  ́e uma decis  ̃ao do plano de controle.
+> **Nota de versionamento:** `v1.0` identifica a versão do software. Eventuais referências a `V5.3` nos documentos identificam a versão do **processo/dossiê de auditoria documental**, e não a versão do software.
 
-Seguindo no exemplo da Figura, a tabela table static profiles determina “como” a próxima tabela (table multipath) deverá ser acessada conforme o
-perfil de divisão de tráfego selecionado. Ao empregar a operação de módulo entre weightID = 001011 e nodeID = 111, o switch 𝑆𝑖 obtém-se o profileID = 1011. Para esse perfil, na tabela table multipath existem 6 entradas (entries) que se iniciam a partir da posição 39 (index1). Na tabela table multipath, o perfil profileID = 1011 está representado na cor verde e a quantidade de linhas define os pesos para cada porta de saída ativa: 2 entradas para a primeira porta ativa (𝑝𝑜𝑟𝑡 𝑝𝑜𝑠𝑖𝑡𝑖𝑜𝑛 = 1), 1 entrada para a segunda porta ativa (𝑝𝑜𝑟𝑡 𝑝𝑜𝑠𝑖𝑡𝑖𝑜𝑛 = 2), 2 entradas para a terceira porta ativa (𝑝𝑜𝑟𝑡 𝑝𝑜𝑠𝑖𝑡𝑖𝑜𝑛 = 3) e 1 entrada para a quarta porta ativa (𝑝𝑜𝑟𝑡 𝑝𝑜𝑠𝑖𝑡𝑖𝑜𝑛 = 4), com um total de 6 entradas. Deste modo, o perfil profileID = 1011 deve dividir o tráfego na seguinte proporção: a primeira porta ativa deve receber 2/6 do tráfego, a segunda porta ativa deve receber 1/6 do tráfego, a terceira porta ativa deve receber 2/6 do tráfego e a quarta porta ativa deve receber 1/6 do tráfego. O número de entradas na table multipath representa justamente a proporção esperada e será explorada por uma função de hashing.
+## Sobre o projeto
 
- Para espalhar os pacotes de um fluxo nas portas de saída ativas conforme a proporção definida no perfil, o switch 𝑆𝑖 executa uma função de hashing com o timestamp de ingresso do pacote. Neste exemplo, considere que o resultado do hashing é 8, e que este valor é submetido a uma operação de módulo inteiro pelo número de entradas em verde (𝑒𝑛𝑡𝑟𝑖𝑒𝑠 = 6 na table multipath), cujo resultado = 2. Este resultado deve ser adicionado ao  ́ındice (𝑖𝑛𝑑𝑒𝑥1 = 39), obtido na tabela table static profiles, resultando no  ́ındice 𝑖𝑛𝑑𝑒𝑥2 = 41 da table multipath. Por fim, essa linha do 𝑖𝑛𝑑𝑒𝑥2 = 41 indica que a segunda porta ativa (𝑝𝑜𝑟𝑡 𝑝𝑜𝑠𝑖𝑡𝑖𝑜𝑛 = 2) deve ser escolhida como porta de saída deste pacote específico. Neste exemplo, como o portID = 011011 foi previamente calculado na etapa de definição da rota, a segunda porta ativa significa que o pacote deve ser encaminhado pela porta de  ́ındice 2 ( ́ındices das portas comec ̧ am em 1, da direita para a esquerda no portID). Ainda na figura, a porta 2 representa o caminho de saída do pacote para o nó B. Aplicando o algoritmo de seleção de portas descrito atá aqui, e considerando a variação aleatória do hashing do timestamp de ingresso dos pacotes, o tráfego associado ao perfil profileID = 1011 ser  ́a espalhado entre as portas ativas com uma proporção de pesos igual a 2:1:2:1.
+O MTS-PolKA combina:
 
-## Organização dos arquvivos
+- roteamento na fonte;
+- divisão de tráfego multicaminho por pesos;
+- identificadores `routeID` e `weightID`;
+- processamento no plano de dados;
+- perfis estáticos de distribuição de tráfego;
+- cálculo baseado em polinômios e aritmética modular;
+- encaminhamento sem necessidade de reconfiguração dinâmica dos switches de núcleo para cada fluxo.
 
-- \<artigo> - diretório contendo os experimentos do artigo. 
-- \<m-polka> - diretório onde estão os aruivos em p4 de configuração dos switches edges e core.
-- MTS-PolKA.pdf - Artigo em pdf.
+A arquitetura é organizada conceitualmente em **plano de controle** e **plano de dados**.
 
+### Plano de controle
 
-## Execução iniciais
-1. Download e instalação da VM:
-   [[6.7GB Size] - Lubuntu 20.04 x64](https://drive.google.com/file/d/1oozRqFO2KjjxW0Ob47d6Re4i6ay1wdwg/view?usp=sharing) - Mininet-WiFi com P4 (_pass: wifi_).
-   - Após o download, acesse a VM com as seguintes credenciais: user: wifi, pass: wifi
-3. Clone do GitHub:
-```sh
-$ https://github.com/giancarloliver/MTS-Polka.git
-```
-```sh
-$ make
-```  
-4. Executar topologia:
-```sh
-$ sudo python3 run_cenario_topology.py
-``` 
-5. Instalação da lib polka-routing:
-```sh
-$ python3 -m pip install polka-routing --user
-``` 
-  Ao instalar a lib, apareceu os alertas:
-  Installing collected packages: WARNING: The script isympy is installed in '/home/wifi/.local/bin' which is not on PATH. Consider adding this directory to PATH or, if you 
-  prefer to suppress this warning,   use --no-warn-script-location.                  
-  Successfully installed mpmath-1.2.1 networkx-2.6.3 pandas-1.3.4 polka-routing-0.2.2 pytz-2021.3 sympy-1.9
-  WARNING: You are using pip version 20.2.3; however, version 21.3 is available. You should consider upgrading via the '/usr/bin/python3 -m pip install --upgrade pip'         command.
+Responsável, entre outras funções, por:
 
-## Observações:
-- Para visualizar os logs, basta executar o código em um novo termina-<nome_switch>-log, como por exemplo, tail -f /tmp/bmv2-s1-log.
-- Qualquer alteração realizada nos códigos do projeto, executar o comando make, para compilar o programa com as alterações realizadas.
+1. determinar caminhos;
+2. calcular identificadores de rota;
+3. selecionar perfis de distribuição;
+4. associar os identificadores aos fluxos;
+5. instalar as regras necessárias nos dispositivos de ingresso.
 
+### Plano de dados
 
-## 1) Passo a passo da execução básica 
+Responsável por:
 
-Para compilar os códigos P4 MTS-PolKA, você deve executar o seguinte comando:
-```sh
-$ cd m-polka/m-polka
-$ make
-$ cd ..
-``` 
-É importante notar que para cada modificação, temos que recompilar usando o comando anterior.
+1. interpretar os identificadores transportados pelo pacote;
+2. determinar as portas de saída;
+3. selecionar o perfil de distribuição;
+4. realizar a seleção do caminho conforme o perfil de pesos;
+5. encaminhar o pacote sem manter estado específico por fluxo nos switches de núcleo.
 
-Gerar o routeid e o wid:
-```sh
-$ sudo python3 calc_routeid_wid.py
-```
+## Estrutura do repositório
 
-Para criar a topologia usando o Mininet, devemos executar o seguinte comando:
-```sh
-$ sudo python3 run_cenario_topology.py
-```
-## Relação do switches
-s1 = s1_0
-s2 = s2_0
-s3 = s2_1
-s4 = s2_2
-s5 = s2_3
-s6 = s2_4
-s7 = s1_1
+Os diretórios existentes no projeto contêm o código-fonte, experimentos, configurações P4, materiais do artigo e documentação técnica.
 
-```python
-#!/usr/bin/env python3
-from polka.tools import calculate_routeid, print_poly
-DEBUG=False
+A documentação relacionada ao **registro do programa de computador** deve ser mantida separada do código operacional, preferencialmente em:
 
-def _main():
-    print("Insering irred poly (node-ID)")
-    s = [
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1], # s1
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1], # s2
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1], # s3
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], # s4
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], # s5
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1], # s6
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1], # s7
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1], # s8
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1], # s9
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1], # s10
-    ]
-    print("From h1 to h2 ====")
-    # defining the nodes from h1 to h2
-    nodes = [
-    s[0],
-    s[1],
-    s[2]
-    s[4],
-	s[5],
-	s[6],
-    ]
-    # defining the transmission state for each node from h1 to h2
-    o = [
-    [1, 1, 0, 1, 1, 0],     # s1   
-	[1, 0],  # s2
-    [1, 0],  # s3
-	[1, 0],	# s5	
-	[1, 0],	#s6
-	[0, 0, 0, 0, 0, 1], # s7
-    ]
-	print_poly(calculate_routeid(nodes, o, debug=DEBUG))
-    
-    print("From wid h1 to h2 ====")
-    # defining the nodes from h1 to h2
-    nodes = [
-    s[0],
-    s[1],
-    s[2]
-    s[4],
-	s[5],
-	s[6],
-	]
-    # defining the transmission weight for each node from h1 to h2
-    w = [
-    [0, 0, 1, 0, 1, 1],     # s1
-    [0, 0],  # s2
-    [0, 0],  # s3
-	[0, 0],	# s5	
-	[0, 0], # s6
-    [0, 0, 0, 0, 0, 0, 0, 0],  # s7
-    ]
-    print("wid h1 to h2 ====")
-    print_poly(calculate_routeid(nodes, w, debug=DEBUG))
+`audit/V5.3/`
 
-    print("From h1 to h2 ====")
-    # defining the nodes from h2 to h1
-    nodes = [
-    s[6],
-    s[5],
-    s[4],
-	s[2],
-	s[1],
-	s[0],
-    ]
+## Dossiê documental — MTS-PolKA v1.0
 
+O dossiê consolidado contém documentos técnicos, matrizes de rastreabilidade, documentos formais e instrumentos de saneamento documental, incluindo:
 
-  # defining the transmission state for each node from h2 to h1
-    o = [
-    [1, 1, 0, 1, 1, 0],     # s7
-	[0, 1],  # s6
-    [0, 1],  # s5
-	[0, 1],	# s4	
-	[0, 1], # s3
-	[0, 1], # s2        
-	[0, 0, 0, 0, 0, 1], # s1
-    ]
-    print("routeid h2 to h1 ====")
-    print_poly(calculate_routeid(nodes, o, debug=DEBUG))
+| Arquivo | Finalidade |
+|---|---|
+| `01_Oficio_Comunicacao_Inovacao_MTS-PolKA.docx` | Ofício de comunicação |
+| `02_Pedido_Registro_Programa_Computador_MTS-PolKA.docx` | Pedido de registro |
+| `03_Formulario_Criacao_Software_MTS-PolKA.docx` | Formulário de criação |
+| `04_Termo_Cessao_Direitos_MTS-PolKA.docx` | Termo de cessão de direitos |
+| `05_Memorial_Descritivo_Tecnico_MTS-PolKA-v6.docx` | Memorial técnico |
+| `06_Matriz_Autores_Contribuicoes_MTS-PolKA.docx` | Autoria e contribuições |
+| `07_Checklist_Documentos_Autores_MTS-PolKA.docx` | Checklist documental |
+| `08_Matriz_Titularidade_Ifes_Ufes_MTS-PolKA.docx` | Matriz de titularidade |
+| `09_Diligencia_Parceria_Ifes_Ufes_MTS-PolKA.docx` | Diligência de parceria |
+| `10_Diligencia_Financiamento_Fapes_Capes_MTS-PolKA.docx` | Diligência de financiamento |
+| `11_Matriz_Financiamento_PI_MTS-PolKA.docx` | Matriz de financiamento |
+| `12_Checklist_Final_SIPAC_AGIFES_MTS-PolKA.docx` | Checklist final |
+| `13_Inventario_Final_Dossie_MTS-PolKA.xlsx` | Inventário final de evidências |
+| `14_Matriz_Rastreabilidade_MTS-PolKA.xlsx` | Rastreabilidade documental |
+| `15_Relatorio_Saneamento_Final_V5.3_MTS-PolKA.docx` | Relatório de saneamento |
+| `16_Matriz_Fechamento_Final_MTS-PolKA.docx` | Matriz final de fechamento |
+| `README_Versao_Final.txt` | Nota de organização da versão final |
+| `NOTA_VERSAO_v1.0.txt` | Regra de versionamento |
 
-    print("From h1 to h2 ====")
-    # defining the nodes from h1 to h2
-    nodes = [
-    s[6],
-    s[5],
-    s[4],
-	s[2],
-	s[1],
-	s[0],
-    ]
+## Estado documental
 
-   # defining the transmission weight for each node from h2 to h1
-    w = [
-    [0, 0, 1, 0, 1, 1],     # s7
-	[0, 0],  # s6
-    [0, 0],  # s5
-	[0, 0],	# s4	
-	[0, 0], # s3
-	[0, 0], # s2        
-	[0, 0, 0, 0, 0, 0], # s1
-    ]    
-    print("wid h2 to h1 ====")
-    print_poly(calculate_routeid(nodes, w, debug=DEBUG)) 
-         
-if __name__ == '__main__':
-    _main()
-```
+### Documentação técnica
 
+- [x] Software identificado: **MTS-PolKA**
+- [x] Finalidade e problemas identificados
+- [x] Funcionalidades de controle e dados identificadas
+- [x] Arquitetura geral dividida entre controle e dados
+- [x] Código-fonte localizado no GitHub
+- [x] Localização da pasta do servidor documentada
+- [x] Evidência da pasta no servidor institucional documentada
+- [x] Linguagens identificadas: Python 87,4%, P4 9,0% e Shell 2,8%
+- [x] Componentes e módulos identificados
+- [x] Autores vinculados ao código
+- [x] Contribuições técnicas individualizadas
+- [x] Desenvolvimento documentado
+- [x] Individualização e originalidade caracterizadas pela abordagem matemática baseada em CRT/RNS
+- [x] Documentação técnica complementar consolidada
 
+### Documentação formal
 
-Execute o arquivo calc_routeid-wid.py e obtenha o novo número do routeID wID calculado de h1 para h2.
+- [x] Ofício de Comunicação
+- [x] Pedido de Registro
+- [x] Formulário de Criação
+- [ ] Documentos formais de parceria Ifes/Ufes
+- [ ] Documentação Fapes e Termos de Outorga
 
-```sh
-m-polka $ python3 alc_routeid_wid
-Insering irred poly (node-ID)
-From h1 to h2 ====
-routeid h1 to h2 ====
-S=  [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1]]
-O=  [[1, 1, 0, 1, 1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [0, 0, 0, 0, 0, 1]]
-Len:  96
-Poly (list):  [1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1]
-Poly (int):  73817044396459291349659850249
-Poly (bin):  0b111011101000010000000111001010110000111000010100110010101011001010111100000100101001011000001001
-Poly (hex):  0xee84072b0e14cab2bc129609
-From h1 to h2 ====
-wid h1 to h2 ====
-S=  [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1]]
-O=  [[0, 0, 1, 0, 1, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
-Len:  95
-Poly (list):  [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0]
-Poly (int):  37823969743312635090392551816
-Poly (bin):  0b11110100011011101000001001001000110001011100011000100100001010111110001000001111001000110001000
-Poly (hex):  0x7a37412462e31215f1079188
-From h1 to h2 ====
-routeid h2 to h1 ====
-S=  [[1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1]]
-O=  [[1, 1, 0, 1, 1, 0], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 0, 0, 0, 0, 1]]
-Len:  92
-Poly (list):  [1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1]
-Poly (int):  4760175146147669529107217697
-Poly (bin):  0b11110110000110000110010010111011111001000100111111111100100111000000111111011011110100100001
-Poly (hex):  0xf61864bbe44ffc9c0fdbd21
-From h1 to h2 ====
-wid h2 to h1 ====
-S=  [[1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1]]
-O=  [[0, 0, 1, 0, 1, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0, 0, 0, 0, 0]]
-Len:  94
-Poly (list):  [1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0]
-Poly (int):  18446848090728087715511153268
-Poly (bin):  0b1110111001101011100000000001101100011000011100100101001100110010001001100001100011001001110100
-Poly (hex):  0x3b9ae006c61c94cc89863274
-```
+Os itens ainda não concluídos permanecem explicitamente identificados como **pendências documentais**, não sendo tratados como fatos comprovados.
 
-Depois de gerar o routeID para o estado das portas de saída e o wID para o perfis de divisão de tráfego de cada caminho, devemos adicionar o routeID e o wID apropriado relacionado ao destino. Por exemplo, para o destino "h2", a seguinte linha em "e1" (nó edge 1) deve ser modificada da seguinte forma:
+## Autoria e versionamento
 
+O código e a documentação técnica devem preservar a rastreabilidade dos autores, contribuições e histórico de desenvolvimento.
 
+A versão de referência para o **registro do programa de computador** é:
 
-```sh
-m-polka $ cd m-polka/config/
-m-polka/m-polka/config $ cat e1-commands.txt
-```
+**MTS-PolKA — v1.0**
 
+## Artigo relacionado
 
+O projeto está associado ao trabalho:
 
-Altere o arquivo e1-commands.txt, o routeID do 10.0.2.2/32 para 817044396459291349659850249 37823969743312635090392551816.:
-```sh
-default tunnel_encap_process_sr tdrop
-table_add tunnel_encap_process_sr add_sourcerouting_header 10.0.1.1/32 => 1 0 00:00:00:00:01:01 0 0
-table_add tunnel_encap_process_sr add_sourcerouting_header 10.0.2.2/32 => 2 1 00:00:00:00:02:02 73817044396459291349659850249 37823969743312635090392551816
-```
+**Weighted Multipath Traffic Splitting With Source Routing for Elephant and Mice Flows**
 
-Altere o arquivo e2-commands.txt, o routeID do 10.0.1.1/32 para 4760175146147669529107217697 18446848090728087715511153268.:
-```sh
-table_set_default tunnel_encap_process_sr tdrop
-table_add tunnel_encap_process_sr add_sourcerouting_header 10.0.2.2/32 => 1 0 00:00:00:00:02:02 0 0
-table_add tunnel_encap_process_sr add_sourcerouting_header 10.0.1.1/32 => 2 1 00:00:00:00:01:01 4760175146147669529107217697 18446848090728087715511153268
-```
+O material científico e os experimentos correspondentes permanecem nos diretórios próprios do repositório.
 
-No terminal que estiver executando a topologia no Mininet, execute 1 ping de um host para outro, exemplo: h1 ping h2 -c 1 e analisar log para entender a execução.
-Abra novo terminal para acompanhar os logs de execução:
-Para verificar o nome do arquivo: 
-```sh
-$ cd ~
-$ ls /tmp
-$ tail -f /tmp/bmv2-<nome_switch>-log
-```
+## Licença
 
+Consulte os arquivos de licença e as condições de uso presentes neste repositório antes de reutilizar o código.
 
+---
 
-
-
+**Repositório:** https://github.com/giancarloliver/MTS-PolKA
